@@ -1,0 +1,16 @@
+{
+  "name": "SlayerParser",
+  "version": "1.0",
+  "manifest_version": 2,
+  "description": "SlayerParser",
+  "icons": {
+    "64": "icon.png"
+  },
+  "browser_action": {
+    "default_title": "SlayerParser",
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "homepage_url": "https://github.com/LostPotatoFoundation",
+  "permissions": ["downloads", "tabs", "<all_urls>", "activeTab"]
+}
