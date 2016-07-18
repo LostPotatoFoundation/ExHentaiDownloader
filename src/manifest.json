@@ -12,5 +12,5 @@
     "default_popup": "popup.html"
   },
   "homepage_url": "https://github.com/LostPotatoFoundation",
-  "permissions": ["downloads", "tabs", "<all_urls>", "activeTab"]
+  "permissions": ["downloads", "tabs", "<all_urls>", "activeTab", "downloads.shelf"]
 }
