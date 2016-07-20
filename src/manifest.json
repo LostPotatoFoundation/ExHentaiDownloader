@@ -1,13 +1,13 @@
 {
-  "name": "SlayerParser",
-  "version": "1.0",
+  "name": "Exhentai downloader",
+  "version": "1.1",
   "manifest_version": 2,
-  "description": "SlayerParser",
+  "description": "Exhentai Downloader developed by DrZed of the Lost Potato Foundation.",
   "icons": {
     "64": "icon.png"
   },
   "browser_action": {
-    "default_title": "SlayerParser",
+    "default_title": "ExhentaiDownloader",
     "default_icon": "icon.png",
     "default_popup": "popup.html"
   },

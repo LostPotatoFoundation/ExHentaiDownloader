@@ -4,41 +4,42 @@ var events = /SC\d\d|C\d\d|\(C[0-9][0-9]?\)|\(COMIC.*?\)|\(SC.*?\)/g;
 var eng = /\(eng.*?\)|\(ENG.*?\)|\(Eng.*?\)/g;
 var identifier = /=.*=|~.*~/g;
 var complete = / (Complete)/g;
-var nonEng = /[^a-z,A-Z,\s,\-,\.,\~,\d]/g;
+var nonEng = /[^a-z,A-Z,\s,\-,\~,\d,\_]/g;
 var ds = /\s{2,}/g;
 var s2 = /\s+\./g;
 var imgArr = [];
+var pageArr = [];
 var len = 0;
 var curChng;
+var maxView = 0;
+var debug = false;
 
 chrome.runtime.onMessage.addListener(function(request, sender) {
 	if (request.action == "gallery") {
 		var str = request.source;
-		var imgs = str.split("<td class=\"gdt1\">Length:</td>")[1].split(" pages</td>")[0].split(">")[1].trim();
+		log("p","Beginning parsing of : " + request.link);
+		len = str.match(/(?:class\=\"gdt2\"\>)([^pages]+)/g)[5].split("\>")[1].trim();
+		log("p","Pages detected : " + len);
 		
-		len = Math.ceil(imgs,40);
-		if (len > 40) {len = 40;}
-		
-		//while(pageArr.length < (Math.round(imgs/40))) {
-		//	if (request.link.search("?p=") == 0) {
-		//		pageArr.push(request.link + "?p=" + (pageArr.length + 1));
-		//	}
-		//}
+		maxView = str.match(/(?:ths nosel\"\>)([^rows]+)/g)[0].split("\>")[1].trim();
+		maxView = maxView * 10;
+		log("p","Pages viewable detected as : " + maxView + "\n");
+		if (len > maxView && request.link.search(/\?p\=/) <= 0) {
+			for (i=1; i<Math.round(len/maxView);i++){
+				pageArr.push(request.link + "?p=" + i);
+			}
+		}
 		
 		setLastKnown(str);
-		
-		msg = request.action + " : " + request.link + "\n name : " + lastKnown + "\n Pages : " + imgs + "\n";
-		log("p",msg);
-		
-		getImages(parsePage(str).split("><"));
+		getImages(parsePage(str));
 	} else if (request.action == "slide") {
 		var l = request.source.match(/(?:src=")([^"]+)/g)[4].replace("src=\"", "");
-		var msg = "Slide parsed to get image at : \n " + l + "\n";
+		var msg = "Slide parsed to get image at : \n " + l;
 		log("p",msg);
 		getImg(l);
 	} else if (request.action == "search") {
 		var str = request.source;
-		var lnks = str.split("<a href=http://exhentai.org/g/");
+		var lnks = str.match(/http\:\/\/exhentai\.org\/g\//g);
 		for (i = 0; i < lnks.length; i++) {
 			lnks[i] = lnks[i].split("\"><img src=\"")[0].trim();
 		}
@@ -61,30 +62,44 @@ chrome.tabs.onUpdated.addListener(function(id,chngs,tab){
 
 var lg = "Log start \n ==================================== \n";
 var setTitle;
-function log(level,string) {;
+function log(level,string) {
 	message.innerText = lg;
 	if (lastKnown && !setTitle) {
 		lg = lg + " Parsed Title as : " + lastKnown;
 		setTitle = true;
 	}
-	//lg = lg + "\n" + string;
-	var para = document.createElement(level);
-	var node = document.createTextNode(string);
-	para.appendChild(node);
-	var element = document.getElementById("message");
-	element.appendChild(para);
+	
+	if (debug) {
+		lg = lg + "\n" + string;
+	} else {
+		var para = document.createElement(level);
+		var node = document.createTextNode("\n" + string);
+		para.appendChild(node);
+		var element = document.getElementById("message");
+		element.appendChild(para);
+	}
 }
 
 function getImages(links) {
+	log("p","\n" + pageArr.length + "\n");
+	if (pageArr.length > 0) {
+		links.forEach(function(entry) {
+			if (entry) {
+				imgArr.push(entry);
+			}
+		});
+		get(pageArr.pop());
+		return;
+	}
 	links.forEach(function(entry) {
 		if (entry.search("/h/") > 0) {
 			getImg(entry);
 		} else if (entry) {
-			log("p","Pushing : " + entry);
 			imgArr.push(entry);
 		}
 	});
-	if (imgArr.length == len) {
+	log("p","Image Array Size : " + imgArr.length + " Number of Pages : " + len);
+	if (imgArr.length >= len) {
 		log("p","Popping first!\n");
 		get(imgArr.pop());
 	}
@@ -117,27 +132,19 @@ function getImg(link) {
 }
 
 function parsePage(page) {
-	var ArrayAsString = "";
-	var tmp = page.split("<div id=\"gdt\"><div class=\"gdtm\" style=\"height:");
-	var tmp2 = tmp[1].split("</a></div></div><div class=\"c\"></div></div>");
-	var tmp3 = tmp2[0].split("<a href=\"");
-	for (i = 1; i < tmp3.length; i++) { 
-		ArrayAsString += tmp3[i].split("\"><img alt=\"")[0] + "><";
-	}
-	var msg = "Parsed Page as : \n" + ArrayAsString.replace(/></g, "\n");
-	log("p",msg);
-	return ArrayAsString;
+	var arr = page.match(/(?:http\:\/\/exhentai\.org\/s\/)([^"]+)/g);
+	log("p","Parsed Page as : ");
+	arr.forEach(function(e){
+		log("p",e);
+	});
+	return arr;
 }
 
 function onWindowLoad() {
 	var message = document.querySelector('#message');
 	log("p","Disabling Downloads Shelf.");
 	chrome.downloads.setShelfEnabled(false);
-	log("p","Downloads Shelf Disabled.");
-	if (chrome.runtime.lastError) {
-		var msg = "There was an error injecting script : \n" + chrome.runtime.lastError.message;
-		log("err",msg);
-	}
+	log("p","Injecting Scripts");
 	chrome.tabs.executeScript(null, {
 		file: "getSource.js"
 	}, function() {
@@ -150,7 +157,7 @@ function onWindowLoad() {
 
 function setLastKnown(str) {
 	lastKnown = str.split("<h1 id=\"gn\">")[1].split("</h1>")[0];
-	lastKnown = lastKnown.replace(tags, "").replace(nonEng, "").replace(events, "").replace(eng, "").replace(identifier, "");
+	lastKnown = lastKnown.replace(tags, "").replace("\.","_").replace(nonEng, "").replace(events, "").replace(eng, "").replace(identifier, "");
 	lastKnown = lastKnown.replace(complete, "").replace(ds, "").replace(s2, "").trim();
 	var msg = "Last Known set to : " + lastKnown;
 	log("p",msg);
@@ -161,7 +168,7 @@ function get(link) {
 	if (link.search("extension:") > 0 || !link) {
 		return;
 	}
-	log("p","Getting : " + link + "\n");
+	log("p","Getting : " + link);
 	curChng = link;
 	if (curtabid == -1) {
 		chrome.tabs.create({
