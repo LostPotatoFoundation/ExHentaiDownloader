@@ -12,7 +12,7 @@ var pageArr = [];
 var len = 0;
 var curChng;
 var maxView = 0;
-var debug = false;
+var debug = true;
 
 chrome.runtime.onMessage.addListener(function(request, sender) {
 	if (request.action == "gallery") {
@@ -132,12 +132,10 @@ function getImg(link) {
 }
 
 function parsePage(page) {
-	var arr = page.match(/(?:http\:\/\/exhentai\.org\/s\/)([^"]+)/g);
-	log("p","Parsed Page as : ");
-	arr.forEach(function(e){
+	page.match(/(?:http\:\/\/exhentai\.org\/s\/)([^"]+)|(?:https\:\/\/exhentai\.org\/s\/)([^"]+)/g).forEach(function(e){
 		log("p",e);
 	});
-	return arr;
+	return page.match(/(?:http\:\/\/exhentai\.org\/s\/)([^"]+)|(?:https\:\/\/exhentai\.org\/s\/)([^"]+)/g);
 }
 
 function onWindowLoad() {
