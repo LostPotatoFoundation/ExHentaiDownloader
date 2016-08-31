@@ -132,10 +132,10 @@ function getImg(link) {
 }
 
 function parsePage(page) {
-	page.match(/(?:http\:\/\/exhentai\.org\/s\/)([^"]+)|(?:https\:\/\/exhentai\.org\/s\/)([^"]+)/g).forEach(function(e){
+	page.match(/(?:https?\:\/\/exhentai\.org\/s\/)([^"]+)/g).forEach(function(e){
 		log("p",e);
 	});
-	return page.match(/(?:http\:\/\/exhentai\.org\/s\/)([^"]+)|(?:https\:\/\/exhentai\.org\/s\/)([^"]+)/g);
+	return page.match(/(?:https?\:\/\/exhentai\.org\/s\/)([^"]+)/g);
 }
 
 function onWindowLoad() {
