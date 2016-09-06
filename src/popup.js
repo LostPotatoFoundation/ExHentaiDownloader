@@ -25,7 +25,7 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 		maxView = maxView * 10;
 		log("p","Pages viewable detected as : " + maxView + "\n");
 		if (len > maxView && request.link.search(/\?p\=/) <= 0) {
-			for (i=1; i<Math.round(len/maxView);i++){
+			for (i=1; i <= Math.round(len/maxView);i++){
 				pageArr.push(request.link + "?p=" + i);
 			}
 		}
@@ -132,10 +132,10 @@ function getImg(link) {
 }
 
 function parsePage(page) {
-	page.match(/(?:https?\:\/\/exhentai\.org\/s\/)([^"]+)/g).forEach(function(e){
+	page.match(/(?:http\:\/\/exhentai\.org\/s\/)([^"]+)|(?:https\:\/\/exhentai\.org\/s\/)([^"]+)/g).forEach(function(e){
 		log("p",e);
 	});
-	return page.match(/(?:https?\:\/\/exhentai\.org\/s\/)([^"]+)/g);
+	return page.match(/(?:http\:\/\/exhentai\.org\/s\/)([^"]+)|(?:https\:\/\/exhentai\.org\/s\/)([^"]+)/g);
 }
 
 function onWindowLoad() {
